@@ -10,6 +10,7 @@ Public Class classFTP
 
     Private _ServerType As String = ""
     Private _EventLog As New StringBuilder
+    Private Erro As String = ""
 
     Private MyFTPSocket As New Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp)
     Private MyFTPEntry As IPEndPoint
@@ -49,6 +50,9 @@ Public Class classFTP
     Public ReadOnly Property Eventlog() As String
         Get
             Return _EventLog.ToString
+
+            'ATC
+
         End Get
     End Property
 
@@ -61,6 +65,10 @@ Public Class classFTP
             End If
         End Get
     End Property
+
+    Public Function getErro() As String
+        getErro = Erro
+    End Function
 
 #End Region
 
@@ -145,27 +153,31 @@ Public Class classFTP
                 GetResponse()
                 If WaitForResponseNo(220) = False Then
                     Disconnect()
-                    RaiseEvent OnErrorMsg("Login failed - No welcome message")
+                    Erro = "Login failed - No welcome message"
+                    RaiseEvent OnErrorMsg(Erro)
                     Return False
                 End If
                 Send("USER " & Username)
                 If WaitForResponseNo(331) = False Then
                     Disconnect()
-                    RaiseEvent OnErrorMsg("Login failed")
+                    Erro = "Login failed"
+                    RaiseEvent OnErrorMsg(Erro)
                     Return False
                 End If
                 'Console.WriteLine("Login")
                 Send("PASS " & Password)
                 If WaitForResponseNo(230) = False Then
                     Disconnect()
-                    RaiseEvent OnErrorMsg("Login failed - Login failed")
+                    Erro = "Login failed - Login failed"
+                    RaiseEvent OnErrorMsg(Erro)
                     Return False
                 End If
                 'Console.WriteLine("PASS")
                 Send("SYST")
                 If WaitForResponseNo(215) = False Then
                     Disconnect()
-                    RaiseEvent OnErrorMsg("Login failed - No system identiforcation")
+                    Erro = "Login failed - No system identiforcation"
+                    RaiseEvent OnErrorMsg(Erro)
                     Return False
                 End If
                 'Console.WriteLine("SYST")
@@ -181,6 +193,7 @@ Public Class classFTP
                 Return False
             End If
         Catch ex As Exception
+            Erro = ex.ToString()
             Console.WriteLine(ex.ToString)
         End Try
     End Function
@@ -196,6 +209,7 @@ Public Class classFTP
             MyFTPSocket.Connect(MyFTPEntry)
             Return True
         Catch
+            Erro = "Error connecting to host: " & Hostname
             RaiseEvent OnErrorMsg("Error connecting to host: " & Hostname)
             Return False
         End Try
@@ -235,6 +249,7 @@ Public Class classFTP
                 Throw New Exception("Server not connected")
             End If
         Catch ex As Exception
+            Erro = ex.ToString
             Console.WriteLine(ex.ToString)
         End Try
     End Function
@@ -260,7 +275,8 @@ Public Class classFTP
             ListDirectory()
             Return True
         Catch ex As Exception
-            Console.WriteLine(ex.ToString)
+            Erro = "Error changing directory " + ex.ToString()
+            Console.WriteLine("Error changing directory")
             Throw New Exception("Error changing directory")
             Return False
         End Try
@@ -279,6 +295,7 @@ Public Class classFTP
                 Do : Loop Until Len(Response.ServerResponseMessage) > 0
             End If
         Catch ex As Exception
+            Erro = ex.ToString
             Console.WriteLine(ex.ToString)
         End Try
     End Function
@@ -307,6 +324,7 @@ Public Class classFTP
                 End If
             End If
         Catch ex As Exception
+            Erro = ex.ToString
             Console.WriteLine(ex.ToString)
         End Try
     End Sub
@@ -340,6 +358,7 @@ Public Class classFTP
             MyPasvSocket.Connect(MyIP)
             Return MyPasvSocket
         Catch ex As Exception
+            Erro = ex.ToString
             Console.WriteLine(ex.ToString)
         End Try
     End Function
@@ -356,6 +375,7 @@ Public Class classFTP
             If (WaitForResponse.MsgNo) = 550 Then
                 ' Timeout happened or command is not successfull
                 Return False
+                Erro = "Can't change directory"
                 RaiseEvent OnErrorMsg("Can't change directory - " & LastResponse.Msg)
                 Throw New Exception("Can't change directory")
             Else
@@ -363,6 +383,7 @@ Public Class classFTP
                 Return True
             End If
         Catch ex As Exception
+            Erro = ex.ToString
             Console.WriteLine(ex.ToString)
         End Try
     End Function
@@ -569,9 +590,14 @@ Public Class classFTP
             End If
 
         Catch ex As Exception
+            Erro = ex.ToString
             Console.WriteLine(ex.ToString)
         End Try
     End Function
+
+    'Public Function Erro() As String
+
+    'End Function
 
     Public Function DownloadFile(ByVal RemoteFilename As String, ByVal LocalFilename As String, Optional ByVal TimeOut As Integer = 10000) As Boolean
         Try
@@ -610,6 +636,7 @@ Public Class classFTP
             MyFile.Close()
 
             If Not (WaitForResponseNo(226, 5000)) Then
+                Erro = "Error downloading file"
                 Throw New Exception("Error downloading file")
                 Return False
             Else
@@ -617,6 +644,7 @@ Public Class classFTP
             End If
 
         Catch ex As Exception
+            Erro = ex.ToString
             Console.WriteLine(ex.ToString)
         End Try
     End Function
@@ -644,6 +672,7 @@ Public Class classFTP
                 Return LastResponse
             End If
         Catch ex As Exception
+            Erro = ex.ToString
             Console.WriteLine(ex.ToString)
         End Try
     End Function
@@ -665,6 +694,7 @@ Public Class classFTP
                 Return True
             End If
         Catch ex As Exception
+            Erro = ex.ToString
             Console.WriteLine(ex.ToString)
         End Try
     End Function
@@ -681,6 +711,7 @@ Public Class classFTP
                 Return False
             End If
         Catch ex As Exception
+            Erro = ex.ToString
             Console.WriteLine(ex.ToString)
         End Try
     End Function

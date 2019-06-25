@@ -4,41 +4,58 @@ Public Class Tela
 
     Private AlterandoTela As Boolean = True
     Private Ativou As Boolean = False
-    Public WithEvents MyFTP As FTP2.classFTP
-    Private Host As String = "ftp.intonses.com.br"
-    Private User As String = "inton634"
-    Private Pass As String = "4zk3xkV3K5"
-    Private ArqEsc As System.IO.FileInfo
+    Public WithEvents MyFTP As classFTP
+    Private ArqEsc As FileInfo
     Private UltDt As Date = DateValue("01/01/2001")
+    Private MeuIni As New Ini()
+
+    Private CaminhoLog As String = ""
+    Private LogCriado As Boolean = False
 
     Private Sub Tela_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        Dim Host As String = MeuIni.getHost()
+        Dim User As String = MeuIni.getUsuario()
+        Dim Pass As String = MeuIni.getSenha()
         MyFTP = New classFTP()
+        Loga("Aciona FTP")
         If MyFTP.Connect(Host, User, Pass) Then
             'Me.WindowState = FormWindowState.Minimized
+            Loga("Conectou no FTP")
         Else
-            MsgBox("Deu Guru ... " & Host, MsgBoxStyle.Exclamation, "Error connecting")
+            Loga("NÂO Conectou no FTP")
+            Dim Erro As String = MyFTP.getErro()
+            Loga("Erro = " & Erro)
+            MsgBox("Deu Guru ... " & Host & " " & Erro & " ", MsgBoxStyle.Exclamation, "Error connecting")
         End If
     End Sub
 
     Private Sub Atualiza()
-        UltAtualizado("D:\Prog\Tele-Tudo\Site\app")
+        Dim camLocal As String = MeuIni.getCamLocal()
+        UltAtualizado(camLocal)
         Label1.Text = ArqEsc.FullName
         Directory.SetCurrentDirectory(ArqEsc.DirectoryName)
         Dim posApp As Integer = ArqEsc.DirectoryName.IndexOf("\app\")
         Dim parDir As String = ArqEsc.DirectoryName.Substring(posApp + 5).Replace("\", "/")
-        Dim DiretFTP As String = "public_html/teletudo/app/" & parDir
+        Dim camFTP As String = MeuIni.getCamFTP()
+        Dim DiretFTP As String = camFTP & parDir
         MyFTP.ChangeDirectory(DiretFTP)
         Timer1.Enabled = True
         ProgressBar1.Maximum = ArqEsc.Length
+        Me.Text = "Enviando " & ArqEsc.Name
         If MyFTP.UploadFile(ArqEsc.Name) = False Then
             MsgBox("Deu Guru")
             End
         End If
+        Me.Text = ArqEsc.Name & " " & Format(Now, "HH:mm:ss")
         Timer1.Enabled = False
     End Sub
 
     Private Sub UploadProgress(ByVal Filename As String, ByVal BytesUploaded As Integer, ByVal Filesize As Integer) Handles MyFTP.UploadProgress
         ProgressBar1.Value = BytesUploaded
+    End Sub
+
+    Private Sub Erro(ByVal ErrorMsg As String) Handles MyFTP.OnErrorMsg
+        MsgBox("Erro ... " & ErrorMsg, MsgBoxStyle.Exclamation, "FTPeitor")
     End Sub
 
     Private Function UltAtualizado(Pasta As String) As FileSystemInfo
@@ -97,4 +114,20 @@ Public Class Tela
             AlterandoTela = False
         End If
     End Sub
+
+    Private Sub Loga(Texto As String)
+        Dim Agora As String = DateTime.Now.ToLongTimeString()
+        Console.WriteLine(Agora + " " + Texto)
+        Dim aLog As StreamWriter
+        Dim CaminhoLog As String = AppDomain.CurrentDomain.BaseDirectory.ToString() + "\log.log"
+        If (LogCriado = True) Then
+            aLog = File.AppendText(CaminhoLog)
+        Else
+            LogCriado = True
+            aLog = File.CreateText(CaminhoLog)
+        End If
+        aLog.WriteLine(Agora + " " + Texto)
+        aLog.Close()
+    End Sub
+
 End Class
