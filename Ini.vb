@@ -26,11 +26,13 @@ Public Class Ini
     End Function
 
     Public Function getCamFTP() As String
-        Return LeArquivoINI("Config", "CamFTP", "public_html/teletudo/app/")
+        Return LeArquivoINI("Config", "CamFTP", "public_html/")
+        'Return LeArquivoINI("Config", "CamFTP", "public_html/teletudo/app/")
     End Function
 
     Public Function getCamLocal() As String
-        Return LeArquivoINI("Config", "CamLocal", "D:\Prog\Tele-Tudo\Site\app")
+        Return LeArquivoINI("Config", "CamLocal", "D:\Prog\Tele-Tudo\5.2\public_html\public_html")
+        'Return LeArquivoINI("Config", "CamLocal", "D:\Prog\Tele-Tudo\Site\app")
     End Function
 
 End Class

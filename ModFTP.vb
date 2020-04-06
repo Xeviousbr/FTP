@@ -30,6 +30,8 @@ Public Class classFTP
     Public Event OnDisconnected()
     Public Event OnConnection()
 
+    Private cLog As Log
+
 #Region "Regex Expressions for phasing directorys"
 
     Private regex_UNIX_1 As New Regex("(?<dir>[\-dr])(?<permission>([\-r][\-w][\-xs]){3})\s+\d+\s+\w+\s+\w+\s+(?<size>\d+)\s+(?<timestamp>\w+\s+\d+\s+\d{4})\s+(?<name>.+)")
@@ -50,9 +52,7 @@ Public Class classFTP
     Public ReadOnly Property Eventlog() As String
         Get
             Return _EventLog.ToString
-
-            'ATC
-
+            cLog.Loga(_EventLog.ToString)
         End Get
     End Property
 
@@ -147,6 +147,10 @@ Public Class classFTP
 #Region "Start of connection"
 
     Public Function Connect(ByVal Hostname As String, ByVal Username As String, ByVal Password As String, Optional ByVal Directory As String = "", Optional ByVal Port As Integer = 21) As Boolean
+
+        cLog = New Log()
+        cLog.inicializa(True)
+
         Try
             If ConnectToHost(Hostname, Port) Then
                 ' Start event handler

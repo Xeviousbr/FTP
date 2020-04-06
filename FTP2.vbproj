@@ -101,6 +101,7 @@
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Ini.vb" />
+    <Compile Include="Log.vb" />
     <Compile Include="ModFTP.vb">
       <SubType>Code</SubType>
     </Compile>
